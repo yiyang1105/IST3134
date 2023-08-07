@@ -1,0 +1,38 @@
+###MapReduce with Python###
+
+#Nano mapper.py                                                                       
+import sys
+
+for line in sys.stdin:
+    line = line.strip()
+    columns = line.split(',')
+    title = columns[1]
+    if title:
+        print('%s\t%s' % (title, 1))
+
+#Nano reducer.py
+from operator import itemgetter
+import sys
+
+title_counts = {}
+
+for line in sys.stdin:
+    line = line.strip()
+    title, count = line.split('\t', 1)
+
+    try:
+        count = int(count)
+    except ValueError:
+        continue
+
+    if title in title_counts:
+        title_counts[title] += count
+    else:
+        title_counts[title] = count
+
+# Sort the title_counts dictionary by count in reverse numerical order
+sorted_titles = sorted(title_counts.items(), key=lambda x: x[1], reverse=True)
+
+# Print the top 20 titles along with their counts
+for title, count in sorted_titles[:20]:
+    print(f"{title}\t{count}")

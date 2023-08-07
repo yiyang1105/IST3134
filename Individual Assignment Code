@@ -1,0 +1,68 @@
+###Read the CSV file from Kaggle###
+
+Start-all.sh
+
+Pip install kaggle
+Mkdir .kaggle
+nano ~/.kaggle/kaggle.json
+chmod 600 ~/.kaggle/kaggle.json
+kaggle datasets download -d mohamedbakhet/amazon-books-reviews
+rm books_data.csv
+
+###MapReduce with Python###
+
+#Nano mapper.py                                                                       
+import sys
+
+for line in sys.stdin:
+    line = line.strip()
+    columns = line.split(',')
+    title = columns[1]
+    if title:
+        print('%s\t%s' % (title, 1))
+
+#Nano reducer.py
+from operator import itemgetter
+import sys
+
+title_counts = {}
+
+for line in sys.stdin:
+    line = line.strip()
+    title, count = line.split('\t', 1)
+
+    try:
+        count = int(count)
+    except ValueError:
+        continue
+
+    if title in title_counts:
+        title_counts[title] += count
+    else:
+        title_counts[title] = count
+
+# Sort the title_counts dictionary by count in reverse numerical order
+sorted_titles = sorted(title_counts.items(), key=lambda x: x[1], reverse=True)
+
+# Print the top 20 titles along with their counts
+for title, count in sorted_titles[:20]:
+    print(f"{title}\t{count}")
+
+###Pig###
+hadoop@ip-172-31-87-124:~$ pig -x local -d error
+
+grunt> input_data = LOAD 'Books_rating.csv' USING PigStorage(',') AS (id: int, title: chararray);
+
+grunt> filtered_data = FILTER input_data BY title IS NOT NULL;
+
+grunt> normalized_data = FOREACH filtered_data GENERATE REGEX_EXTRACT(title, '([^()]+)', 1) AS normalized_title;
+
+grunt> grouped_data = GROUP normalized_data BY normalized_title;
+
+grunt> title_counts = FOREACH grouped_data GENERATE group AS title, COUNT(normalized_data) AS count;
+
+grunt> sorted_data = ORDER title_counts BY count DESC;
+
+grunt> top_20_titles = LIMIT sorted_data 20;
+
+grunt> DUMP top_20_titles;

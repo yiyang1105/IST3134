@@ -1,0 +1,18 @@
+###Pig###
+hadoop@ip-172-31-87-124:~$ pig -x local -d error
+
+grunt> input_data = LOAD 'Books_rating.csv' USING PigStorage(',') AS (id: int, title: chararray);
+
+grunt> filtered_data = FILTER input_data BY title IS NOT NULL;
+
+grunt> normalized_data = FOREACH filtered_data GENERATE REGEX_EXTRACT(title, '([^()]+)', 1) AS normalized_title;
+
+grunt> grouped_data = GROUP normalized_data BY normalized_title;
+
+grunt> title_counts = FOREACH grouped_data GENERATE group AS title, COUNT(normalized_data) AS count;
+
+grunt> sorted_data = ORDER title_counts BY count DESC;
+
+grunt> top_20_titles = LIMIT sorted_data 20;
+
+grunt> DUMP top_20_titles;

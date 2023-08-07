@@ -1,0 +1,10 @@
+###Read the CSV file from Kaggle###
+
+Start-all.sh
+
+Pip install kaggle
+Mkdir .kaggle
+nano ~/.kaggle/kaggle.json
+chmod 600 ~/.kaggle/kaggle.json
+kaggle datasets download -d mohamedbakhet/amazon-books-reviews
+rm books_data.csv
